@@ -1,20 +1,16 @@
-sintoma(febre,dengue).
-sintoma(dorCorpo,dengue).
-sintoma(malEstar,dengue).
-sintoma(manchasVermelhas,dengue).
-sintoma(malEstar,dengue).
-sintoma(doresArticulacoes,dengue).
+sintoma(febre,[dengue,chikungunya,zika,febreMaculosaBrasileira]).
+sintoma(dorCorpo,[dengue,chikungunya]).
+sintoma(malEstar,[dengue]).
+sintoma(manchasVermelhas,[dengue,chikungunya,zika]).
+sintoma(malEstar,[dengue]).
+sintoma(doresArticulacoes,[dengue,zika]).
 
-sintoma(febre,chikungunya).
-sintoma(dorDeCabeça,chikungunya).
+sintoma(dorDeCabeça,[chikungunya,febreAmarela,covid,zika,febreMaculosaBrasileira]).
 sintoma(erupcaoAvermelhadaPele,chikungunya).
-sintoma(dorCorpo,chikungunya).
-sintoma(manchasVermelhas,chikungunya).
 
 sintoma(perdaDeApetite,febreAmarela).
 sintoma(dorMuscular,febreAmarela).
 sintoma(febre,febreAmarela).
-sintoma(dorDeCabeça,febreAmarela).
 sintoma(nausea,febreAmarela).
 sintoma(vomito,febreAmarela).
 
@@ -30,18 +26,11 @@ sintoma(tosse,covid).
 sintoma(coriza,covid).
 sintoma(faltaDeAr,covid).
 sintoma(coriza,covid).
-sintoma(dorDeCabeça,covid).
 
-sintoma(doresArticulacoes,zika).
-sintoma(febre,zika).
-sintoma(dorDeCabeça,zika).
-sintoma(manchasVermelhas,zika).
 sintoma(coceira,zika).
 sintoma(vermelhidaoOlhos,zika).
 
-sintoma(febre,febreMaculosaBrasileira).
-sintoma(dorDeCabeça,febreMaculosaBrasileira).
-csintoma(diarreia,febreMaculosaBrasileira).
+sintoma(diarreia,febreMaculosaBrasileira).
 sintoma(dorCostas,febreMaculosaBrasileira).
 
 sintoma(tremores,parkinson).
@@ -57,5 +46,15 @@ sintoma(desorientacão,alzheimer).
 sintoma(confusao,alzheimer).
 sintoma(agressividade,alzheimer).
 
-add(X,Lista,[X|Lista]).
+input([],[]).
+input([SINTOMA|RESTO],Lista):-
+    sintoma(SINTOMA,T)-> append(T,T1,Lista), input(RESTO,T1); input(RESTO,Lista).
 
+
+adicionar_paciente(File,Text):-
+    random(0,9,Rand),
+    open(File,append,Stream),
+    write(Stream,Text),write(Stream,' '),write(Stream,Rand), nl(Stream),
+    close(Stream).
+
+remover_pacientes(File,Text,id).
