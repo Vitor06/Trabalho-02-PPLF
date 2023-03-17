@@ -50,7 +50,12 @@ input([],[]).
 count([],K,0).
 
 count([X|Resto],K,N):-
-     K =:= X ->count(Resto,K,T0), N is T0 + 1;count(Resto,K,N).
+	K=:=X -> count(Resto,K,T0),N is T0+1 ; count(Resto,K,N).
+
+countAll([],Lista1,[]).
+countAll([K|Resto],Lista,[T0|L]):-
+	count(Lista,K,T0),
+	countAll(Resto,Lista,L).
 
 
 input([SINTOMA|RESTO],Lista,N,L):-
