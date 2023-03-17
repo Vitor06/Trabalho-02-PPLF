@@ -1,4 +1,3 @@
-
 sintoma(febre,[dengue,chikungunya,zika,febreMaculosaBrasileira]).
 sintoma(dorCorpo,[dengue,chikungunya]).
 sintoma(malEstar,[dengue]).
@@ -67,11 +66,18 @@ dividir([X|Resto],Total,[T|L]):-
 	T is (X /Total)*100,
 	dividir(Resto,Total,L).
 
+resultado([],[]).
+resultado([doenca|Resto],[X|R]):-
+	write(doenca), write(X),nl,
+	resultado(Resto,R).
+
+
 main(Sintomas,Lista,R,P):-
      input(Sintomas,Lista),
      countAll([dengue,chikungunya,zika,febreMaculosaBrasileira,febreAmarela,tetanoAcidental,alzheimer,obesidade,parkinson,covid],Lista,R),
      sumlist(R,Total),
      dividir(R,Total,P).
+     %%resultado([dengue,chikungunya,febreMaculodaBrasileira,febreAmarela,tetanoAcidental,alzheimer,obesidade,parkinson,covid],P).
 
 
 
