@@ -1,3 +1,4 @@
+
 sintoma(febre,[dengue,chikungunya,zika,febreMaculosaBrasileira]).
 sintoma(dorCorpo,[dengue,chikungunya]).
 sintoma(malEstar,[dengue]).
@@ -50,7 +51,7 @@ input([],[]).
 count([],K,0).
 
 count([X|Resto],K,N):-
-	K=:=X -> count(Resto,K,T0),N is T0+1 ; count(Resto,K,N).
+	K=X -> count(Resto,K,T0),N is T0+1 ; count(Resto,K,N).
 
 countAll([],Lista1,[]).
 countAll([K|Resto],Lista,[T0|L]):-
@@ -58,8 +59,20 @@ countAll([K|Resto],Lista,[T0|L]):-
 	countAll(Resto,Lista,L).
 
 
-input([SINTOMA|RESTO],Lista,N,L):-
+input([SINTOMA|RESTO],Lista):-
     sintoma(SINTOMA,T)-> append(T,T1,Lista), input(RESTO,T1); input(RESTO,Lista).
+
+dividir([],T,[]).
+dividir([X|Resto],Total,[T|L]):-
+	T is (X /Total)*100,
+	dividir(Resto,Total,L).
+
+main(Sintomas,Lista,R,P):-
+     input(Sintomas,Lista),
+     countAll([dengue,chikungunya,zika,febreMaculosaBrasileira,febreAmarela,tetanoAcidental,alzheimer,obesidade,parkinson,covid],Lista,R),
+     sumlist(R,Total),
+     dividir(R,Total,P).
+
 
 
 adicionar_paciente(File,Text):-
