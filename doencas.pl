@@ -47,7 +47,13 @@ sintoma(confusao,alzheimer).
 sintoma(agressividade,alzheimer).
 
 input([],[]).
-input([SINTOMA|RESTO],Lista):-
+count([],K,0).
+
+count([X|Resto],K,N):-
+     K =:= X ->count(Resto,K,T0), N is T0 + 1;count(Resto,K,N).
+
+
+input([SINTOMA|RESTO],Lista,N,L):-
     sintoma(SINTOMA,T)-> append(T,T1,Lista), input(RESTO,T1); input(RESTO,Lista).
 
 
@@ -56,5 +62,6 @@ adicionar_paciente(File,Text):-
     open(File,append,Stream),
     write(Stream,Text),write(Stream,' '),write(Stream,Rand), nl(Stream),
     close(Stream).
+
 
 remover_pacientes(File,Text,id).
