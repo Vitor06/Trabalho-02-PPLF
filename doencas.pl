@@ -98,4 +98,26 @@ adicionar_paciente(File,Text):-
     close(Stream).
 
 
-remover_pacientes(File,Text,id).
+consultar_paciente(Id,File):-
+	open(File,read,Stream),
+	get_char(Stream,Char1),
+	proximo(Char1,Stream,[Char1],Id),
+	close(Stream).
+
+comparar(Palavra,Id):-
+	 atomics_to_string(Palavra,S),
+	 S=Id,
+	 !.
+
+proximo(end_of_file,_,_,_):-!.
+proximo(Char,Stream,Lista,Id):-
+	write(Char),
+	get_char(Stream,Char2),
+	Char2 \= '\n'->append(Lista,[Char2],L),proximo(Char2,Stream,L,Id);
+	comparar(Lista,Id);nl, proximo('',Stream,[],Id).
+
+
+
+consultar_paciente(Id, Nome).
+
+remover_pacientes(Id).
