@@ -1,4 +1,4 @@
-sintoma(febre,[dengue,chikungunya,zika,febreMaculosaBrasileira]).
+sintoma(febre,[dengue,chikungunya,zika,febreMaculosaBrasileira,febreAmarela]).
 sintoma(dorCorpo,[dengue,chikungunya]).
 sintoma(malEstar,[dengue]).
 sintoma(manchasVermelhas,[dengue,chikungunya,zika]).
@@ -10,7 +10,6 @@ sintoma(erupcaoAvermelhadaPele,chikungunya).
 
 sintoma(perdaDeApetite,[febreAmarela]).
 sintoma(dorMuscular,[febreAmarela]).
-sintoma(febre,[febreAmarela]).
 sintoma(nausea,[febreAmarela]).
 sintoma(vomito,[febreAmarela]).
 
