@@ -1,54 +1,9 @@
-sintoma(febre,[dengue,chikungunya,zika,febreMaculosaBrasileira]).
-sintoma(dorCorpo,[dengue,chikungunya]).
-sintoma(malEstar,[dengue]).
-sintoma(manchasVermelhas,[dengue,chikungunya,zika]).
-sintoma(malEstar,[dengue]).
-sintoma(doresArticulacoes,[dengue,zika]).
+:- consult(sintomas_doencas).
 
-sintoma(dorDeCabeça,[chikungunya,febreAmarela,covid,zika,febreMaculosaBrasileira]).
-sintoma(erupcaoAvermelhadaPele,chikungunya).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Lógica Principal
 
-sintoma(perdaDeApetite,[febreAmarela]).
-sintoma(dorMuscular,[febreAmarela]).
-sintoma(febre,[febreAmarela]).
-sintoma(nausea,[febreAmarela]).
-sintoma(vomito,[febreAmarela]).
-
-sintoma(contraturasMusculares,[tetanoAcidental]).
-sintoma(rigidezBraços,[tetanoAcidental]).
-sintoma(rigidezPernas,[tetanoAcidental]).
-sintoma(rigidezAbdominal,[tetanoAcidental]).
-sintoma(dificuldadeAbrirBoca,[tetanoAcidental]).
-
-sintoma(calafrios,[covid]).
-sintoma(dorDeGarganta,[covid]).
-sintoma(tosse,[covid]).
-sintoma(coriza,[covid]).
-sintoma(faltaDeAr,[covid]).
-sintoma(coriza,[covid]).
-
-sintoma(coceira,[zika]).
-sintoma(vermelhidaoOlhos,[zika]).
-
-sintoma(diarreia,[febreMaculosaBrasileira]).
-sintoma(dorCostas,[febreMaculosaBrasileira]).
-
-sintoma(tremores,[parkinson]).
-sintoma(lentidao,[parkinson]).
-
-sintoma(apneia,[obesidade]).
-sintoma(ansiedade,[obesidade]).
-sintoma(depressao,[obesidade]).
-
-sintoma(perdaDeMemoria,[alzheimer]).
-sintoma(depressao,[alzheimer]).
-sintoma(desorientacão,[alzheimer]).
-sintoma(confusao,[alzheimer]).
-sintoma(agressividade,[alzheimer]).
-
-input([],[]).
 count([],K,0).
-
 count([X|Resto],K,N):-
 	K=X -> count(Resto,K,T0),N is T0+1 ; count(Resto,K,N).
 
@@ -57,9 +12,13 @@ countAll([K|Resto],Lista,[T0|L]):-
 	count(Lista,K,T0),
 	countAll(Resto,Lista,L).
 
-
+input([],[]).
 input([SINTOMA|RESTO],Lista):-
-    sintoma(SINTOMA,T)-> append(T,T1,Lista), input(RESTO,T1); input(RESTO,Lista).
+    sintoma(SINTOMA,T) -> 
+        append(T,T1,Lista),
+        input(RESTO,T1) 
+    ; 
+        input(RESTO,Lista).
 
 calcular([],T,[],[]).
 calcular([X|Resto],Total,[T|L],[Peso|RestoPeso]):-
@@ -80,22 +39,31 @@ resultado([Doenca|Resto],[X|R]):-
 
 
 main(Sintomas,Lista,P):-
-     Pesos = [0.886,0.178,0.00573,0.001,0.002,0.056,0.1,0.4,0.01,0.49],
-     input(Sintomas,Lista),
-     countAll([dengue,chikungunya,zika,febreMaculosaBrasileira,febreAmarela,tetanoAcidental,alzheimer,obesidade,parkinson,covid],Lista,R),
-     sumlist(R,Total),
-     calcular(R,Total,P,Pesos),
-     resultado([dengue,chikungunya,zika,febreAmarela,febreMaculodaBrasileira,tetanoAcidental,alzheimer,obesidade,parkinson,covid],P).
+    %% Pesos referentes a cada doença
+    Pesos = [0.886,0.178,0.00573,0.001,0.002,0.056,0.1,0.4,0.01,0.49],
+    input(Sintomas,Lista),
+    % print(Lista),
+    countAll([dengue,chikungunya,zika,febreMaculosaBrasileira,febreAmarela,
+        tetanoAcidental,alzheimer,obesidade,parkinson,covid],Lista,R),
+    % print(R),
+    sumlist(R,Total),
+    calcular(R,Total,P,Pesos),
+    resultado([dengue,chikungunya,zika,febreAmarela,febreMaculodaBrasileira,
+        tetanoAcidental,alzheimer,obesidade,parkinson,covid],P).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Interação Humano-Computador
 
-
-
-
-adicionar_paciente(File,Text):-
+adicionar_paciente(Nome):-
     random(0,9,Rand),
-    open(File,append,Stream),
-    write(Stream,Text),write(Stream,' '),write(Stream,Rand), nl(Stream),
+    open('pacientes.txt',append,Stream),
+    write(Stream,Nome),write(Stream,' '),write(Stream,Rand), nl(Stream),
     close(Stream).
 
+consultar_paciente(Id).
 
-remover_pacientes(File,Text,id).
+consultar_paciente(Id, Nome).
+
+remover_pacientes(Id).
+
+% main([febre, dorCorpo], Lista, P).
