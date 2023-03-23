@@ -136,4 +136,12 @@ remover_paciente(Id) :-
     list_to_file(LinesAtualizado, FileAtualizado),
     close(FileAtualizado).
 
-% main([febre, perdaDeMemoria], Lista, P).
+alterar_paciente(Id,Texto):-
+    check_id_exist(Id),
+    file_lines('pacientes.txt', Lines),
+    nth0(Id, Lines, Elem),
+    select(Elem,Lines, Texto,LinesAtualizado),
+    delete_file('pacientes.txt'),
+    open('pacientes.txt', write, FileAtualizado),
+    list_to_file(LinesAtualizado, FileAtualizado),
+    close(FileAtualizado).
