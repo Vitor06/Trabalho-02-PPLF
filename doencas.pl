@@ -2,7 +2,7 @@
 :- use_module(library(pairs)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Lógica Principal
+%%% Lógica Principal
 
 count([],K,0).
 count([X|Resto],K,N):-
@@ -71,35 +71,47 @@ main(Sintomas,Lista,P):-
     resultado(DoencasSortedReverse, PorcentagensSortedReverse).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Interação Humano-Computador
+%%% Interação Humano-Computador
 
-adicionar_paciente(File,Text):-
-    random(0,9,Rand),
-    open(File,append,Stream),
-    write(Stream,Text),write(Stream,' '),write(Stream,Rand), nl(Stream),
+%% Regras auxiliares
+list_to_file([""], File).
+list_to_file([Head | Tail], File) :-
+    write(File, Head),
+    nl(File),
+    list_to_file(Tail, File).
+
+file_lines(File, Lines) :-
+    setup_call_cleanup(open(File, read, In),
+       stream_lines(In, Lines),
+       close(In)).
+
+stream_lines(In, Lines) :-
+    read_string(In, _, Str),
+    split_string(Str, "\n", "", Lines).
+
+check_id_exist(Id) :-
+    exists_file('pacientes.txt'),
+    file_lines('pacientes.txt', Lines),
+    length(Lines, LinesAmount),
+    IdsAmounts is LinesAmount - 1,
+    Id >= 0,
+    Id < IdsAmounts.
+
+%% CRUD
+inserir_paciente(Nome) :-
+    open('pacientes.txt', append, Stream),
+    write(Stream, Nome),
+    nl(Stream),
     close(Stream).
 
-
-consultar_paciente(Id,File):-
-	open(File,read,Stream),
-	get_char(Stream,Char1),
-	proximo(Char1,Stream,[Char1],Id),
-	close(Stream).
-
-comparar(Palavra,Id):-
-	 atomics_to_string(Palavra,S),
-	 S=Id,
-	 !.
-
-proximo(end_of_file,_,_,_):-!.
-proximo(Char,Stream,Lista,Id):-
-	write(Char),
-	get_char(Stream,Char2),
-	Char2 \= '\n'->append(Lista,[Char2],L),proximo(Char2,Stream,L,Id);
-	comparar(Lista,Id);nl, proximo('',Stream,[],Id).
-
-consultar_paciente(Id, Nome).
-
-remover_pacientes(Id).
+remover_paciente(Id) :-
+    check_id_exist(Id),
+    file_lines('pacientes.txt', Lines),
+    nth0(Id, Lines, Elem),
+    delete(Lines, Elem, LinesAtualizado),
+    delete_file('pacientes.txt'),
+    open('pacientes.txt', write, FileAtualizado),
+    list_to_file(LinesAtualizado, FileAtualizado),
+    close(FileAtualizado).
 
 % main([febre, perdaDeMemoria], Lista, P).
