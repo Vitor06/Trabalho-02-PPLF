@@ -145,3 +145,15 @@ alterar_paciente(Id,Texto):-
     open('pacientes.txt', write, FileAtualizado),
     list_to_file(LinesAtualizado, FileAtualizado),
     close(FileAtualizado).
+
+
+consultar_paciente(Id):-
+    check_id_exist(Id),
+    file_lines('pacientes.txt', Lines),
+    nth0(Id, Lines, Elem),
+    write(Elem),
+    open('pacientes.txt', write, FileAtualizado),
+    list_to_file(Lines, FileAtualizado),
+    close(FileAtualizado).
+
+% main([febre, perdaDeMemoria], Lista, P).
