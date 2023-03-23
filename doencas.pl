@@ -15,10 +15,10 @@ countAll([K|Resto],Lista,[T0|L]):-
 
 input([],[]).
 input([SINTOMA|RESTO],Lista):-
-    sintoma(SINTOMA,T) -> 
+    sintoma(SINTOMA,T) ->
         append(T,T1,Lista),
-        input(RESTO,T1) 
-    ; 
+        input(RESTO,T1)
+    ;
         input(RESTO,Lista).
 
 calcular([],T,[],[]).
@@ -39,7 +39,24 @@ resultado([Doenca|Resto],[X|R]):-
 	resultado(Resto,R).
 
 
+get_nome_pacientes(Nome):-
+	read(Nome).
+insere_barra([],[]).
+insere_barra([X|Resto],[S|R]):-
+
+       string_concat(X,'|',S),
+       insere_barra(Resto,R).
+
+
 main(Sintomas,Lista,P):-
+    get_nome_pacientes(Nome),
+
+    insere_barra(Sintomas,SintomasResult),
+    atomics_to_string(SintomasResult,S),
+    string_concat(Nome,'|',NomeResult),
+    string_concat(NomeResult,S,Resultado),
+
+
     %% Pesos referentes a cada doença
     Pesos = [0.886,0.178,0.00573,0.001,0.002,0.056,0.1,0.4,0.01,0.49],
 
@@ -68,7 +85,12 @@ main(Sintomas,Lista,P):-
     reverse(PorcentagensSorted, PorcentagensSortedReverse),
 
     %% Imprimir resultado na tela
-    resultado(DoencasSortedReverse, PorcentagensSortedReverse).
+    resultado(DoencasSortedReverse, PorcentagensSortedReverse),
+   [Doenca|_] = DoencasSortedReverse,
+   string_concat(Resultado,Doenca,PacienteCompleto),
+
+    inserir_paciente(PacienteCompleto).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Interação Humano-Computador
