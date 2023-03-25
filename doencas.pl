@@ -4,11 +4,44 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Lógica Principal
 
-count([],K,0).
+main(Sintomas,Lista,P) :-
+    Doencas = [dengue,chikungunya,zika,febreMaculosaBrasileira,febreAmarela,
+               tetanoAcidental,alzheimer,obesidade,parkinson,covid],
+
+    %% Pesos referentes a cada doença
+    Pesos = [0.886,0.178,0.00573,0.001,0.002,0.056,0.1,0.4,0.01,0.49],
+
+    %% Buscar doenças relacionadas com sintomas
+    input(Sintomas,Lista),
+
+    %% Contar quantas vezes cada doença está relacionada com um sintoma
+    countAll(Doencas, Lista, R),
+
+    %% Calcular doenças mais prováveis
+    sumlist(R,Total),
+    calcular(R,Total,P,Pesos),
+
+    %% Corrigir o cálculo para somar 100%
+    sumlist(P, Total2),
+    calcular(P, Total2, P2, [1,1,1,1,1,1,1,1,1,1]),
+
+    %% Ordenar doenças das mais prováveis para menos
+    pairs_keys_values(Pairs, P2, Doencas),
+    keysort(Pairs, PairsSorted),
+    pairs_keys_values(PairsSorted, PorcentagensSorted, DoencasSorted),
+    reverse(DoencasSorted, DoencasSortedReverse),
+    reverse(PorcentagensSorted, PorcentagensSortedReverse),
+
+    %% Imprimir resultado na tela
+    write('---------- Resultado da Consulta ----------\n'),
+    resultado(DoencasSortedReverse, PorcentagensSortedReverse).
+
+%% Regras auxilirares
+count([],_,0).
 count([X|Resto],K,N):-
 	K=X -> count(Resto,K,T0),N is T0+1 ; count(Resto,K,N).
 
-countAll([],Lista1,[]).
+countAll([],_,[]).
 countAll([K|Resto],Lista,[T0|L]):-
 	count(Lista,K,T0),
 	countAll(Resto,Lista,L).
@@ -21,12 +54,12 @@ input([SINTOMA|RESTO],Lista):-
     ; 
         input(RESTO,Lista).
 
-calcular([],T,[],[]).
+calcular([],_,[],[]).
 calcular([X|Resto],Total,[T|L],[Peso|RestoPeso]):-
 	T is (X /Total)*Peso*100,
 	calcular(Resto,Total,L,RestoPeso).
 
-ordenar([],X,[]).
+ordenar([],_,[]).
 ordenar([P|R],ProbabilidadesAux,[I|K]):-
 	sort(0,@>=,ProbabilidadesAux,O),
 	nth0(I,O,P),
@@ -38,80 +71,269 @@ resultado([Doenca|Resto],[X|R]):-
 	write(Doenca),write(->), write(XArredondado), write("%"),nl,nl,
 	resultado(Resto,R).
 
-
-main(Sintomas,Lista,P):-
-    %% Pesos referentes a cada doença
-    Pesos = [0.886,0.178,0.00573,0.001,0.002,0.056,0.1,0.4,0.01,0.49],
-
-    %% Buscar doenças relacionadas com sintomas
-    input(Sintomas,Lista),
-
-    %% Contar quantas vezes cada doença está relacionada com um sintoma
-    countAll([dengue,chikungunya,zika,febreMaculosaBrasileira,febreAmarela,
-        tetanoAcidental,alzheimer,obesidade,parkinson,covid],Lista,R),
-
-    %% Calcular doenças mais prováveis
-    sumlist(R,Total),
-    calcular(R,Total,P,Pesos),
-
-    %% Corrigir o cálculo para somar 100%
-    sumlist(P, Total2),
-    calcular(P, Total2, P2, [1,1,1,1,1,1,1,1,1,1]),
-
-    %% Ordenar doenças das mais prováveis para menos
-    pairs_keys_values(Pairs, P2, [dengue,chikungunya,zika,febreAmarela,
-        febreMaculodaBrasileira,tetanoAcidental,alzheimer,obesidade,
-        parkinson,covid]),
-    keysort(Pairs, PairsSorted),
-    pairs_keys_values(PairsSorted, PorcentagensSorted, DoencasSorted),
-    reverse(DoencasSorted, DoencasSortedReverse),
-    reverse(PorcentagensSorted, PorcentagensSortedReverse),
-
-    %% Imprimir resultado na tela
-    resultado(DoencasSortedReverse, PorcentagensSortedReverse).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Interação Humano-Computador
 
-%% Regras auxiliares
-list_to_file([""], File).
-list_to_file([Head | Tail], File) :-
-    write(File, Head),
-    nl(File),
-    list_to_file(Tail, File).
+main_menu :-
+    Opcoes = ['Sair', 
+              'Fazer consulta de doencas',
+              'Inserir paciente',
+              'Ler informacoes paciente',
+              'Atualizar paciente',
+              'Remover paciente'],
+    write('---------- Menu de Acoes ----------\n'),
+    imprimir_opcoes(Opcoes, Opcao, 0),
+    Opcao \= 0,  % Sair retorna false
 
-file_lines(File, Lines) :-
-    setup_call_cleanup(open(File, read, In),
-       stream_lines(In, Lines),
-       close(In)).
+    (Opcao == 1 -> % Fazer consulta de doencas
+        (\+ exists_file('pacientes.txt') -> 
+            write('Cadastre um paciente!\n\n')
+        ;
+            (escolher_id_sintomas(Id, Sintomas) ->
+                length(Sintomas, Length),
+                (Length \= 0 ->
+                    main(Sintomas, _, _),
+                    atualizar_paciente_sintomas(Id, Sintomas)
+                ;
+                    write('Selecione um sintoma!\n\n'))))
+                
 
-stream_lines(In, Lines) :-
-    read_string(In, _, Str),
-    split_string(Str, "\n", "", Lines).
+    ; (Opcao == 2 -> % Inserir paciente
+        (escolher_nome(Nome) -> 
+            inserir_paciente(Nome)
+        ; 
+            true))
 
-check_id_exist(Id) :-
-    exists_file('pacientes.txt'),
-    file_lines('pacientes.txt', Lines),
-    length(Lines, LinesAmount),
-    IdsAmounts is LinesAmount - 1,
-    Id >= 0,
-    Id < IdsAmounts.
+    ; (Opcao == 3 -> % Ler paciente
+        (escolher_id(Id) -> 
+            ler_paciente(Id)
+        ;
+            true))
+
+    ; (Opcao == 4 -> % Atualizar paciente
+        (escolher_id_nome(Id, Nome) ->
+            atualizar_paciente_nome(Id, Nome)
+        ;
+            true))
+
+    ; (Opcao == 5 -> % Remover paciente
+        (escolher_id(Id) ->
+            remover_paciente(Id) 
+        ;
+            true))
+    ; 
+        write('Opcao invalida!\n\n')),
+        
+    main_menu.
 
 %% CRUD
 inserir_paciente(Nome) :-
     open('pacientes.txt', append, Stream),
     write(Stream, Nome),
+    write(Stream, '|'),
     nl(Stream),
     close(Stream).
 
-remover_paciente(Id) :-
-    check_id_exist(Id),
-    file_lines('pacientes.txt', Lines),
-    nth0(Id, Lines, Elem),
-    delete(Lines, Elem, LinesAtualizado),
-    delete_file('pacientes.txt'),
+ler_paciente(Id) :-
+    pacientes_to_list(Pacientes),
+    nth0(Id, Pacientes, Paciente),
+    split_string(Paciente, "|", "", PacienteContents),
+
+    PacienteContents = [Nome | Consultas],
+    write('---------- Consultas do paciente '),
+    write(Nome),
+    write(' ----------\n'),
+    ler_pacientes_aux(Consultas).
+
+atualizar_paciente_nome(Id, Nome) :-
+    pacientes_to_list(Pacientes),
+
+    nth0(Id, Pacientes, Paciente),
+    split_string(Paciente, "|", "", PacienteContents),
+
+    PacienteContents = [NomeAnterior | _],
+    select(NomeAnterior, PacienteContents, Nome, PacienteAtualizado1),
+    atomic_list_concat(PacienteAtualizado1, "|", PacienteAtualizado2),
+    select(Paciente, Pacientes, PacienteAtualizado2, PacientesAtualizado),
+
     open('pacientes.txt', write, FileAtualizado),
-    list_to_file(LinesAtualizado, FileAtualizado),
+    list_to_file(PacientesAtualizado, FileAtualizado),
     close(FileAtualizado).
+
+atualizar_paciente_sintomas(Id, Sintomas) :-
+    get_time(TimeStamp),
+    NovaConsulta = [TimeStamp | Sintomas],
+    atomic_list_concat(NovaConsulta, ',', NovaConsultaFormatada1),
+    string_concat(NovaConsultaFormatada1, '|', NovaConsultaFormatada2),
+    pacientes_to_list(Pacientes),
+    nth0(Id, Pacientes, Paciente),
+    string_concat(Paciente, NovaConsultaFormatada2, PacienteAtualizado),
+
+    select(Paciente, Pacientes, PacienteAtualizado, PacientesAtualizado),
+
+    open('pacientes.txt', write, FileAtualizado),
+    list_to_file(PacientesAtualizado, FileAtualizado),
+    close(FileAtualizado).
+
+remover_paciente(Id) :-
+    exists_file('pacientes.txt'),
+    pacientes_to_list(Pacientes),
+    (length(Pacientes, 1) ->
+        delete_file('pacientes.txt')
+    ;
+        delete(Pacientes, "", PacientesContents),
+        valid_list_index(PacientesContents, Id),
+        nth0(Id, Pacientes, Elem),
+        delete(Pacientes, Elem, PacientesAtualizado),
+        delete_file('pacientes.txt'),
+        open('pacientes.txt', write, FileAtualizado),
+        list_to_file(PacientesAtualizado, FileAtualizado),
+        close(FileAtualizado)).
+
+
+
+%% Regras auxiliares
+list_to_file([], _).
+list_to_file([Head | Tail], File) :-
+    write(File, Head),
+    nl(File),
+    list_to_file(Tail, File).
+
+pacientes_to_list(PacientesContents) :-
+    setup_call_cleanup(open('pacientes.txt', read, In),
+       pacientes_to_list_aux(In, Lines),
+       close(In)),
+    delete(Lines, "", PacientesContents).
+pacientes_to_list_aux(In, Lines) :-
+    read_string(In, _, Str),
+    split_string(Str, "\n", "", Lines).
+
+valid_list_index(List, Index) :-
+    length(List, ListLength),
+    Index >= 0,
+    Index < ListLength.
+
+imprimir_opcoes([], Opcao, _) :-
+    write('\nDigite: '),
+    read(Opcao),
+    get_char(_),  % Limpar \n
+    write('\n').
+imprimir_opcoes([Head | Tail], Opcao, CountStart) :-
+    write(CountStart),
+    write(' - '),
+    write(Head),
+    write('\n'),
+
+    CountStartAtualizado is CountStart + 1,
+    imprimir_opcoes(Tail, Opcao, CountStartAtualizado).
+
+pacientes_nomes([], NomesTail) :- 
+    NomesTail = [].
+pacientes_nomes([LinesHead | LinesTail], Nomes) :-
+    split_string(LinesHead, "|", "", PacienteCampos),
+    nth0(0, PacienteCampos, Nome),
+    Nomes = [Nome | NomesTail],
+    pacientes_nomes(LinesTail, NomesTail).
+
+escolher_id_sintomas(Id, Escolhidos) :-
+    Sintomas = [febre, dorCorpo, malEstar, manchasVermelhas, malEstar, 
+                doresArticulacoes, dorDeCabeca, erupcaoAvermelhadaPele, 
+                perdaDeApetite, dorMuscular, nausea, vomito, 
+                contraturasMusculares, rigidezBracos, rigidezPernas,
+                rigidezAbdominal, dificuldadeAbrirBoca, calafrios,
+                dorDeGarganta, tosse, coriza, faltaDeAr, coriza, coceira,
+                vermelhidaoOlhos, diarreia, dorCostas, tremores, lentidao,
+                apneia, ansiedade, depressao, perdaDeMemoria, depressao,
+                desorientacao, confusao, agressividade],
+
+    (escolher_id(Id) ->
+        escolher_sintomas(Sintomas, Escolhidos) ->
+            true
+        ;
+            escolher_id_sintomas(Id, Escolhidos)).
+
+escolher_sintomas(Sintomas, Escolhidos) :-
+    append(['Voltar', 'Continuar'], Sintomas, Opcoes),
+
+    write('---------- Menu de Sintomas ----------\n'),
+    imprimir_opcoes(Opcoes, Opcao, 0),
+
+    Opcao \= 0,
+    nth0(Opcao, Opcoes, Sintoma),
+    Sintoma \= 'Continuar' ->
+        (valid_list_index(Opcoes, Opcao) ->
+            print('aoba'),
+            nth0(Opcao, Opcoes, Escolhido),
+            Escolhidos = [Escolhido | RestoEscolhidos],
+            delete(Sintomas, Escolhido, SintomasDisponiveis),
+            escolher_sintomas(SintomasDisponiveis, RestoEscolhidos)
+        ;
+            write('Opcao invalida!\n\n'),
+            escolher_sintomas(Sintomas, Escolhidos))
+    ;
+        Escolhidos = [].
+
+escolher_nome(Nome) :- 
+    write('0 - Voltar\nEscolha um nome (entre \'\'): '),
+    read(NomeEscolhido),
+    get_char(_),  % Limpar \n
+    write('\n'),
+    (var(NomeEscolhido) ->
+        write('Nome invalido!\n\n'),
+        escolher_nome(Nome)
+    ;
+        NomeEscolhido \= 0,
+        Nome = NomeEscolhido).
+
+escolher_id(Id) :-
+    pacientes_to_list(Lines),
+    pacientes_nomes(Lines, Nomes),
+    append(['Voltar'], Nomes, Opcoes),
+    write('---------- Menu de Pacientes ----------\n'),
+    imprimir_opcoes(Opcoes, Opcao, 0),
+    Opcao \= 0,
+    (\+ valid_list_index(Opcoes, Opcao)  ->
+        write('Opcao invalida!\n\n'),
+        escolher_id(Id)
+    ;
+        Id is Opcao - 1).
+
+escolher_id_nome(Id, Nome) :-
+    (escolher_id(Id) ->
+        escolher_nome(Nome) ->
+            true
+        ;
+            escolher_id_nome(Id, Nome)).
+
+ler_pacientes_aux("") :-
+    write('Nenhuma consulta encontrada!\n').
+ler_pacientes_aux([""]).
+ler_pacientes_aux(Consultas) :-
+    [ConsultaAtual | RestoConsultas] = Consultas,
+    split_string(ConsultaAtual, ",", "", Campos),
+    Campos = [TimeStampString | Sintomas],
+    number_string(TimeStampFloat, TimeStampString),
+    stamp_date_time(TimeStampFloat, DateTime, 'UTC'),
+    DateTime = date(Y, M, D, H, Min, Sec, _, _, _),
+    HBrazil is H - 3,
+    write('Consulta do dia '),
+    write(D), write('/'),
+    write(M), write('/'),
+    write(Y), write(', as '),
+    write(HBrazil), write(':'),
+    write(Min), write(':'),
+    write(Sec), write(' horas: '),
+    ler_pacientes_aux2(Sintomas),
+    ler_pacientes_aux(RestoConsultas).
+ler_pacientes_aux2([]).
+ler_pacientes_aux2(Sintomas) :-
+    [Sintoma | RestoSintomas] = Sintomas,
+    write(Sintoma),
+    (RestoSintomas \= [] ->
+        write(', ')
+    ;
+        write('\n\n')),
+
+    ler_pacientes_aux2(RestoSintomas).
 
 % main([febre, perdaDeMemoria], Lista, P).

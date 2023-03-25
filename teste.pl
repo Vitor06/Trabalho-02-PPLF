@@ -1,2 +1,2 @@
-teste(X):-
-    print(X is X-1).
+teste(X) :-
+    X = arthur.
