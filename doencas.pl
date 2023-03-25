@@ -48,10 +48,10 @@ countAll([K|Resto],Lista,[T0|L]):-
 
 input([],[]).
 input([SINTOMA|RESTO],Lista):-
-    sintoma(SINTOMA,T) -> 
+    sintoma(SINTOMA,T) ->
         append(T,T1,Lista),
-        input(RESTO,T1) 
-    ; 
+        input(RESTO,T1)
+    ;
         input(RESTO,Lista).
 
 calcular([],_,[],[]).

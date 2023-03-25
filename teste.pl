@@ -1,2 +1,0 @@
-teste(X) :-
-    X = arthur.
