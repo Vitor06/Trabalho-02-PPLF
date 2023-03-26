@@ -95,8 +95,9 @@ main_menu :-
                     main(Sintomas, _, _),
                     atualizar_paciente_sintomas(Id, Sintomas)
                 ;
-                    write('Selecione um sintoma!\n\n'))))
-                
+                    write('Selecione um sintoma!\n\n'))
+            ;
+                true))
 
     ; (Opcao == 2 -> % Inserir paciente
         (escolher_nome(Nome) -> 
@@ -246,8 +247,8 @@ escolher_id_sintomas(Id, Escolhidos) :-
                 apneia, ansiedade, depressao, perdaDeMemoria, depressao,
                 desorientacao, confusao, agressividade],
 
-    (escolher_id(Id) ->
-        escolher_sintomas(Sintomas, Escolhidos) ->
+    escolher_id(Id) ->
+        (escolher_sintomas(Sintomas, Escolhidos) ->
             true
         ;
             escolher_id_sintomas(Id, Escolhidos)).
@@ -260,9 +261,8 @@ escolher_sintomas(Sintomas, Escolhidos) :-
 
     Opcao \= 0,
     nth0(Opcao, Opcoes, Sintoma),
-    Sintoma \= 'Continuar' ->
+    (Sintoma \= 'Continuar' ->
         (valid_list_index(Opcoes, Opcao) ->
-            print('aoba'),
             nth0(Opcao, Opcoes, Escolhido),
             Escolhidos = [Escolhido | RestoEscolhidos],
             delete(Sintomas, Escolhido, SintomasDisponiveis),
@@ -271,19 +271,15 @@ escolher_sintomas(Sintomas, Escolhidos) :-
             write('Opcao invalida!\n\n'),
             escolher_sintomas(Sintomas, Escolhidos))
     ;
-        Escolhidos = [].
+        Escolhidos = []).
 
 escolher_nome(Nome) :- 
     write('0 - Voltar\nEscolha um nome (entre \'\'): '),
-    read(NomeEscolhido),
+    read(Nome),
     get_char(_),  % Limpar \n
     write('\n'),
-    (var(NomeEscolhido) ->
-        write('Nome invalido!\n\n'),
-        escolher_nome(Nome)
-    ;
-        NomeEscolhido \= 0,
-        Nome = NomeEscolhido).
+
+    Nome \= 0.
 
 escolher_id(Id) :-
     pacientes_to_list(Lines),
@@ -299,10 +295,10 @@ escolher_id(Id) :-
         Id is Opcao - 1).
 
 escolher_id_nome(Id, Nome) :-
-    (escolher_id(Id) ->
-        escolher_nome(Nome) ->
+    escolher_id(Id) ->
+        (escolher_nome(Nome) -> 
             true
-        ;
+        ; 
             escolher_id_nome(Id, Nome)).
 
 ler_pacientes_aux("") :-
@@ -315,7 +311,7 @@ ler_pacientes_aux(Consultas) :-
     number_string(TimeStampFloat, TimeStampString),
     stamp_date_time(TimeStampFloat, DateTime, 'UTC'),
     DateTime = date(Y, M, D, H, Min, Sec, _, _, _),
-    HBrazil is H - 3,
+    HBrazil is (H - 3) mod 24,
     write('Consulta do dia '),
     write(D), write('/'),
     write(M), write('/'),
