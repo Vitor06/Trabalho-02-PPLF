@@ -46,9 +46,10 @@ main(Sintomas,Lista,P) :-
         doenca_sintomas(DoencaDiagnosticada, SintomasDoencaDiagnosticada),
         write('\n'),
         write('Sintomas da doenca '), write(DoencaDiagnosticada), write(': '),
-        write('\n'),
-        imprimirLista(SintomasDoencaDiagnosticada)),
-        write('\n')
+        atomic_list_concat(SintomasDoencaDiagnosticada, ', ', 
+            SintomasDoencaDiagnosticadaFormatados),
+        write(SintomasDoencaDiagnosticadaFormatados),
+        write('\n\n'))
     ;
         write('\n').
 
@@ -275,30 +276,37 @@ escolher_id_sintomas(Id, Escolhidos) :-
                 desorientacao, confusao, agressividade],
 
     escolher_id(Id) ->
-        (escolher_sintomas(Sintomas, Escolhidos) ->
+        (escolher_sintomas(Sintomas, Escolhidos, []) ->
             true
         ;
             escolher_id_sintomas(Id, Escolhidos)).
 
-escolher_sintomas(Sintomas, Escolhidos) :-
+escolher_sintomas(Sintomas, Escolhidos, Acumulador) :-
     append(['Voltar', 'Continuar'], Sintomas, Opcoes),
 
     write('---------- Menu de Sintomas ----------\n'),
+    atomic_list_concat(Acumulador, ', ', AcumuladorFormatado),
+    write('Selecionados: '), write(AcumuladorFormatado), write('\n\n'),
     imprimir_opcoes(Opcoes, Opcao, 0),
 
     Opcao \= 0,
-    nth0(Opcao, Opcoes, Sintoma),
-    (Sintoma \= 'Continuar' ->
-        (valid_list_index(Opcoes, Opcao) ->
-            nth0(Opcao, Opcoes, Escolhido),
+    (nth0(Opcao, Opcoes, Sintoma) -> true ; true),
+    
+    (valid_list_index(Opcoes, Opcao) ->
+        (Sintoma \= 'Continuar' ->
+            (nth0(Opcao, Opcoes, Escolhido),
             Escolhidos = [Escolhido | RestoEscolhidos],
             delete(Sintomas, Escolhido, SintomasDisponiveis),
-            escolher_sintomas(SintomasDisponiveis, RestoEscolhidos)
+            append(Acumulador, [Sintoma], AcumuladorAux),
+            escolher_sintomas(SintomasDisponiveis, RestoEscolhidos, 
+                AcumuladorAux))
         ;
-            write('Opcao invalida!\n\n'),
-            escolher_sintomas(Sintomas, Escolhidos))
+            Escolhidos = [])
     ;
-        Escolhidos = []).
+        (write('Opcao invalida!\n\n'),
+            escolher_sintomas(Sintomas, Escolhidos, Acumulador))).
+
+        
 
 escolher_nome(Nome) :- 
     write('0 - Voltar\nEscolha um nome (entre \'\'): '),
