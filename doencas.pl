@@ -34,7 +34,23 @@ main(Sintomas,Lista,P) :-
 
     %% Imprimir resultado na tela
     write('---------- Resultado da Consulta ----------\n'),
-    resultado(DoencasSortedReverse, PorcentagensSortedReverse).
+    resultado(DoencasSortedReverse, PorcentagensSortedReverse),
+    write('Obs: o resultado do prototipo e apenas informativo. E necessario
+     consultar um medico para obter um diagnostico correto e preciso.\n\n'),
+    write(
+        'Deseja obter mais informacoes sobre a doenca diagnosticada (s/n): '),
+    read(MaisInformacoes),
+    get_char(_),  % Limpar \n
+    MaisInformacoes == s ->
+        (nth0(0, DoencasSortedReverse, DoencaDiagnosticada),
+        doenca_sintomas(DoencaDiagnosticada, SintomasDoencaDiagnosticada),
+        write('\n'),
+        write('Sintomas da doenca '), write(DoencaDiagnosticada), write(': '),
+        write('\n'),
+        imprimirLista(SintomasDoencaDiagnosticada)),
+        write('\n')
+    ;
+        write('\n').
 
 %% Regras auxilirares
 count([],_,0).
@@ -71,24 +87,27 @@ resultado([Doenca|Resto],[X|R]):-
 	write(Doenca),write(->), write(XArredondado), write("%"),nl,nl,
 	resultado(Resto,R).
 
+imprimirLista([]).
+imprimirLista([Head | Tail]) :-
+    write('    '), write(Head), write('\n'),
+    imprimirLista(Tail).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Interação Humano-Computador
 
 main_menu :-
     Opcoes = ['Sair', 
-              'Fazer consulta de doencas',
+              'Fazer diagnostico',
               'Inserir paciente',
               'Ler informacoes paciente',
               'Atualizar paciente',
               'Remover paciente'],
     write('---------- Menu de Acoes ----------\n'),
     imprimir_opcoes(Opcoes, Opcao, 0),
-    Opcao \= 0,  % Sair retorna false
+    (Opcao == 0 -> false ; true),  % Sair retorna false
 
     (Opcao == 1 -> % Fazer consulta de doencas
-        (\+ exists_file('pacientes.txt') -> 
-            write('Cadastre um paciente!\n\n')
-        ;
+        (exists_file('pacientes.txt') -> 
             (escolher_id_sintomas(Id, Sintomas) ->
                 length(Sintomas, Length),
                 (Length \= 0 ->
@@ -97,31 +116,42 @@ main_menu :-
                 ;
                     write('Selecione um sintoma!\n\n'))
             ;
-                true))
+                true)
+        ;
+            write('Nenhum paciente cadastrado!\n\n'))
 
-    ; (Opcao == 2 -> % Inserir paciente
+    ; Opcao == 2 -> % Inserir paciente
         (escolher_nome(Nome) -> 
             inserir_paciente(Nome)
         ; 
-            true))
+            true)
 
-    ; (Opcao == 3 -> % Ler paciente
-        (escolher_id(Id) -> 
-            ler_paciente(Id)
+    ; Opcao == 3 -> % Ler paciente
+        (exists_file('pacientes.txt') ->
+            (escolher_id(Id) -> 
+                ler_paciente(Id)
+            ;
+                true)
         ;
-            true))
+            write('Nenhum paciente cadastrado!\n\n'))
 
-    ; (Opcao == 4 -> % Atualizar paciente
-        (escolher_id_nome(Id, Nome) ->
-            atualizar_paciente_nome(Id, Nome)
+    ; Opcao == 4 -> % Atualizar paciente
+        (exists_file('pacientes.txt') ->
+            (escolher_id_nome(Id, Nome) ->
+                atualizar_paciente_nome(Id, Nome)
+            ;
+                true)
         ;
-            true))
+            write('Nenhum paciente cadastrado!\n\n'))
 
-    ; (Opcao == 5 -> % Remover paciente
-        (escolher_id(Id) ->
-            remover_paciente(Id) 
+    ; Opcao == 5 -> % Remover paciente
+        (exists_file('pacientes.txt') ->
+            (escolher_id(Id) ->
+                remover_paciente(Id) 
+            ;
+                true)
         ;
-            true))
+            write('Nenhum paciente cadastrado!\n\n'))
     ; 
         write('Opcao invalida!\n\n')),
         
@@ -177,7 +207,6 @@ atualizar_paciente_sintomas(Id, Sintomas) :-
     close(FileAtualizado).
 
 remover_paciente(Id) :-
-    exists_file('pacientes.txt'),
     pacientes_to_list(Pacientes),
     (length(Pacientes, 1) ->
         delete_file('pacientes.txt')
@@ -190,8 +219,6 @@ remover_paciente(Id) :-
         open('pacientes.txt', write, FileAtualizado),
         list_to_file(PacientesAtualizado, FileAtualizado),
         close(FileAtualizado)).
-
-
 
 %% Regras auxiliares
 list_to_file([], _).
@@ -312,13 +339,19 @@ ler_pacientes_aux(Consultas) :-
     stamp_date_time(TimeStampFloat, DateTime, 'UTC'),
     DateTime = date(Y, M, D, H, Min, Sec, _, _, _),
     HBrazil is (H - 3) mod 24,
+    round(Sec, SecInt),
+    format(atom(DFormated), '~|~`0t~d~2+', [D]),
+    format(atom(MFormated), '~|~`0t~d~2+', [M]),
+    format(atom(HFormated), '~|~`0t~d~2+', [HBrazil]),
+    format(atom(MinFormated), '~|~`0t~d~2+', [Min]),
+    format(atom(SecFormated), '~|~`0t~d~2+', [SecInt]),
     write('Consulta do dia '),
-    write(D), write('/'),
-    write(M), write('/'),
+    write(DFormated), write('/'),
+    write(MFormated), write('/'),
     write(Y), write(', as '),
-    write(HBrazil), write(':'),
-    write(Min), write(':'),
-    write(Sec), write(' horas: '),
+    write(HFormated), write(':'),
+    write(MinFormated), write(':'),
+    write(SecFormated), write(' horas: '),
     ler_pacientes_aux2(Sintomas),
     ler_pacientes_aux(RestoConsultas).
 ler_pacientes_aux2([]).
