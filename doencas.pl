@@ -35,21 +35,23 @@ main(Sintomas,Lista,P) :-
     %% Imprimir resultado na tela
     write('---------- Resultado da Consulta ----------\n'),
     resultado(DoencasSortedReverse, PorcentagensSortedReverse),
-    write('Obs: o resultado do prototipo e apenas informativo. E necessario
-     consultar um medico para obter um diagnostico correto e preciso.\n\n'),
+    write('Obs: o resultado do prototipo e apenas informativo. E necessario consultar um medico para obter um diagnostico correto e preciso.\n\n'),
     write(
         'Deseja obter mais informacoes sobre a doenca diagnosticada (s/n): '),
     read(MaisInformacoes),
     get_char(_),  % Limpar \n
     MaisInformacoes == s ->
-        (nth0(0, DoencasSortedReverse, DoencaDiagnosticada),
-        doenca_sintomas(DoencaDiagnosticada, SintomasDoencaDiagnosticada),
-        write('\n'),
-        write('Sintomas da doenca '), write(DoencaDiagnosticada), write(': '),
-        atomic_list_concat(SintomasDoencaDiagnosticada, ', ', 
-            SintomasDoencaDiagnosticadaFormatados),
-        write(SintomasDoencaDiagnosticadaFormatados),
-        write('\n\n'))
+        DoencasSortedReverse = [DoencaDiagnosticada | _],
+        write('\nSintomas da doenca '), 
+        write(DoencaDiagnosticada),
+        write(': '),
+        findall(SintomaSearch, (sintoma(SintomaSearch, DoencasSearch), 
+                    member(DoencaDiagnosticada, DoencasSearch)), 
+                SintomasSearch),
+        sort(SintomasSearch, SintomasUnicos),  % Remover sintomas repetidos
+        atomic_list_concat(SintomasUnicos, ', ', SintomasMostrar),
+        write(SintomasMostrar),
+        write('\n\n')
     ;
         write('\n').
 
@@ -88,10 +90,12 @@ resultado([Doenca|Resto],[X|R]):-
 	write(Doenca),write(->), write(XArredondado), write("%"),nl,nl,
 	resultado(Resto,R).
 
-imprimirLista([]).
-imprimirLista([Head | Tail]) :-
-    write('    '), write(Head), write('\n'),
-    imprimirLista(Tail).
+% unionSets([], _) :-
+% unionSets([SetsHead | SetsTail], Result) :-
+%     SetsTail = [SetsTailHead | SetsTailTail],
+%     union(SetsHead, SetsTailHead, CurrentResult),
+%     append(CurrentResult, NextResult, Result),
+%     unionSets([CurrentResult | SetsTailTail], NextResult).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Interação Humano-Computador
