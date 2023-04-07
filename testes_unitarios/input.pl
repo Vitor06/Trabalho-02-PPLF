@@ -1,7 +1,7 @@
 :- consult(sintomas_doencas).
 :- use_module(library(plunit)).
 
-%% input(+Sintomas, ?Doencas) is semidet
+%% input(+Sintomas, -Doencas) is det
 %
 % Verdadeiro se, para cada doença que possui sintoma em Sintomas associado,
 % a doença é adiciona em Doenças, podendo ser adicionado de forma repetida

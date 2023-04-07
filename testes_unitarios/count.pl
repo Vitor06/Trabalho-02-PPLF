@@ -1,10 +1,10 @@
 :- use_module(library(plunit)).
 
-%% count(+Lista, +X, ?Y) is semidet
+%% count(+Lista, +X, -Y) is det
 %
 % Verdadeiro se Y é o número de vezes que X aparece em Lista.
 
-count([],K,0).
+count([],_,0).
 count([X|Resto],K,N):-
 	K=X -> 
         count(Resto,K,T0),N is T0+1

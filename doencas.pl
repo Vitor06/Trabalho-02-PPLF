@@ -9,7 +9,16 @@ main(Sintomas,Lista,P) :-
                tetanoAcidental,alzheimer,obesidade,parkinson,covid],
 
     %% Pesos referentes a cada doença
-    Pesos = [0.886,0.178,0.00573,0.001,0.002,0.056,0.1,0.4,0.01,0.49],
+    Pesos = [0.884,  % dengue
+             0.00041,  % chikungunya
+             0.0059,  % zika
+             0.1,  % febreMaculosaBrasileira - Valor fictício
+             0.1,  % febreAmarela - Valor fictício
+             0.0000012,  % tetanoAcidental
+             0.0166,  % alzheimer
+             0.333,  % obesidade
+             0.2,  % parkinson
+             0.6],  % covid
 
     %% Buscar doenças relacionadas com sintomas
     input(Sintomas,Lista),
@@ -89,13 +98,6 @@ resultado([Doenca|Resto],[X|R]):-
     format(atom(XArredondado), '~1f', [X]),
 	write(Doenca),write(->), write(XArredondado), write("%"),nl,nl,
 	resultado(Resto,R).
-
-% unionSets([], _) :-
-% unionSets([SetsHead | SetsTail], Result) :-
-%     SetsTail = [SetsTailHead | SetsTailTail],
-%     union(SetsHead, SetsTailHead, CurrentResult),
-%     append(CurrentResult, NextResult, Result),
-%     unionSets([CurrentResult | SetsTailTail], NextResult).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Interação Humano-Computador
@@ -179,7 +181,8 @@ ler_paciente(Id) :-
     write('---------- Consultas do paciente '),
     write(Nome),
     write(' ----------\n'),
-    ler_pacientes_aux(Consultas).
+    ler_pacientes_aux(Consultas),
+    write('\n').
 
 atualizar_paciente_nome(Id, Nome) :-
     pacientes_to_list(Pacientes),
@@ -373,7 +376,7 @@ ler_pacientes_aux2(Sintomas) :-
     (RestoSintomas \= [] ->
         write(', ')
     ;
-        write('\n\n')),
+        write('\n')),
 
     ler_pacientes_aux2(RestoSintomas).
 
